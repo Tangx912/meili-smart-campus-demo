@@ -1,0 +1,17 @@
+node_modules/
+dist/
+*.zip
+data/cad-raw.json
+data/cad-lines.json
+
+data/building11/raw.json
+data/building11/drawing.json
+
+references/
+.env
+.env.*
+.DS_Store
+__pycache__/
+docs/**/*.png
+docs/**/*results.json
+data/surroundings.json

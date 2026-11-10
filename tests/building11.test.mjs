@@ -1,0 +1,10 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import * as THREE from 'three';
+import {buildBuilding11} from '../src/building11.js';
+const data=JSON.parse(readFileSync(new URL('../data/building11.json',import.meta.url))),site=JSON.parse(readFileSync(new URL('../data/site.json',import.meta.url))),before=JSON.parse(readFileSync(new URL('../data/building11/site-before.json',import.meta.url)));
+const b=site.buildings.find(b=>b.id===11);
+test('11号单体控制尺寸、标高和屋面源图可追溯',()=>{assert.equal(data.width,56.4);assert.equal(data.depth,20.2);assert.deepEqual(data.floorLevels,[0,4.5,9,12.6,16.2,19.8,23.4]);assert.equal(data.parapetHeight,25.2);assert.equal(data.height,27.9);assert.equal(data.roofRoom.sourceHandle,3445);assert.equal(data.solar.length,40);});
+test('11号阳台是真实1.8m凹入空间，前沿不是贴面假窗',()=>{const g=buildBuilding11(b,data);g.updateMatrixWorld(true);const front=b.bounds[1]+data.depth;const first=data.views.south.balconies[0],u=(first.rect[0]+first.rect[2])/2;
+ const ray=new THREE.Raycaster(new THREE.Vector3(b.bounds[0]+u,10.6,front+3),new THREE.Vector3(0,0,-1));const hits=ray.intersectObject(g,true);assert.ok(hits.length);assert.ok(hits[0].distance>4.4,`balcony recess depth: ${hits[0].distance}`);
+ const bounds=new THREE.Box3().setFromObject(g);assert.ok(Math.abs(bounds.max.y-27.9)<.02);assert.ok(bounds.min.x<b.bounds[0]-.9);assert.ok(bounds.max.x>b.bounds[2]+.9);
+});
+test('精细化不改其余10栋和站位/车位数据',()=>{for(const old of before.buildings)if(old.id!==11)assert.deepEqual(site.buildings.find(b=>b.id===old.id),old);assert.deepEqual(site.stations,before.stations);assert.deepEqual(site.parkingBays,before.parkingBays);});
