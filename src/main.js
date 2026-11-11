@@ -4,6 +4,7 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {buildBuildings} from './buildings.js';
 import {buildSite} from './site.js';
 import {createSceneEffects} from './scene-effects.js';
+import {createPatrol} from './patrol.js';
 import {createFloorSelection} from './building11-selection.js';
 import {linework} from './geometry.js';
 import {createNavigation} from './navigation.js';
@@ -23,6 +24,7 @@ async function boot(){
  scene.add(new THREE.HemisphereLight(0xd5efff,0x334a60,2.2));const sun=new THREE.DirectionalLight(0xe4f5ff,3);sun.position.set(-100,210,110);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-195,right:195,top:190,bottom:-190,near:1,far:500});sun.shadow.normalBias=.18;sun.shadow.bias=-.00025;scene.add(sun);scene.add(sun.target);
  const buildings=buildBuildings(site),land=buildSite(site,lines);scene.add(buildings.group,buildings.labels,land.group);
  const sceneEffects=createSceneEffects(site);scene.add(sceneEffects.group);
+ const patrol=createPatrol({onFocus:()=>view('patrol',true)});scene.add(patrol.group);
  const floorSelection=createFloorSelection(site.buildings.find(b=>b.id===11),floorData);scene.add(floorSelection.group);
  const inspectionBase=new THREE.Mesh(new THREE.BoxGeometry(74,.3,36),new THREE.MeshStandardMaterial({color:0x102b3d,roughness:1}));inspectionBase.position.set(36.813,-.35,-87.7114);inspectionBase.visible=false;scene.add(inspectionBase);
  const floorViewer=new FloorViewer11(floorData,site.buildings.find(b=>b.id===11));scene.add(floorViewer.group);
@@ -34,13 +36,13 @@ async function boot(){
  scene.add(markers);markers.visible=false;
  const cadLayer=new THREE.Group();cadLayer.add(linework(lines,0x216762,.18));cadLayer.add(linework(site.buildings.map(b=>({points:b.footprint,closed:true})),0xc95e2b,.19));cadLayer.add(linework([{points:site.boundary,closed:true}],0xc95e2b,.2));cadLayer.visible=false;scene.add(cadLayer);
  const stations=$('station');for(const p of site.stations)stations.add(new Option(p.name,p.id));
- const views={overview:{eye:[-330,303,368],target:[-12,0,0]},entrance:{eye:[-126,9,8],target:[-40,10,-4]},street:{eye:[1.65,2.4,91],target:[1.65,5.5,30]},dorm:{eye:[36.813,13.95,22.2886],target:[36.813,13.95,-87.7114]},dormNorth:{eye:[36.813,13.95,-197.7114],target:[36.813,13.95,-87.7114]},dormWest:{eye:[-43.187,13.95,-87.7114],target:[36.813,13.95,-87.7114]},dormEast:{eye:[116.813,13.95,-87.7114],target:[36.813,13.95,-87.7114]},dormSelect:{eye:[-28,44,-22],target:[36.813,12,-87.7114]},dormRoof:{eye:[-4,63,-47],target:[34,21,-87]},floor:{eye:[36.8,64,-40],target:[36.8,0,-87]},floorsAll:{eye:[69,156,25],target:[69,0,-58]},floorTop:{eye:[36.8,83,-87],target:[36.8,0,-87.01]},plan:{eye:[-15,600,.1],target:[-15,0,0]}};
+ const views={patrol:{eye:[-38,155,147],target:[17,0,48]},overview:{eye:[-330,303,368],target:[-12,0,0]},entrance:{eye:[-126,9,8],target:[-40,10,-4]},street:{eye:[1.65,2.4,91],target:[1.65,5.5,30]},dorm:{eye:[36.813,13.95,22.2886],target:[36.813,13.95,-87.7114]},dormNorth:{eye:[36.813,13.95,-197.7114],target:[36.813,13.95,-87.7114]},dormWest:{eye:[-43.187,13.95,-87.7114],target:[36.813,13.95,-87.7114]},dormEast:{eye:[116.813,13.95,-87.7114],target:[36.813,13.95,-87.7114]},dormSelect:{eye:[-28,44,-22],target:[36.813,12,-87.7114]},dormRoof:{eye:[-4,63,-47],target:[34,21,-87]},floor:{eye:[36.8,64,-40],target:[36.8,0,-87]},floorsAll:{eye:[69,156,25],target:[69,0,-58]},floorTop:{eye:[36.8,83,-87],target:[36.8,0,-87.01]},plan:{eye:[-15,600,.1],target:[-15,0,0]}};
  let transition=null,viewName='overview',selectedFloor=1;
  function showFloor(number){selectedFloor=number;floorViewer.show(number);view(number==='all'?'floorsAll':'floor');$('floor-room-info').hidden=number==='all';$('floor-room-title').textContent=number==='all'?'全部楼层展开':`${number}F · ${number===1?'食堂 / 大堂':number===2?'物业办公 / 活动室':'宿舍层'}`;$('floor-room-body').textContent='鼠标移入房间可点亮并查看名称，移开后自动隐藏。手机可轻点查看。';document.querySelectorAll('[data-floor]').forEach(b=>b.classList.toggle('active',b.dataset.floor===String(number)));}
  floorViewer.onSelect=(room,floor,active,count)=>{$('floor-room-info').hidden=false;$('floor-room-title').textContent=`${floor.name} · ${room.name}`;$('floor-room-body').textContent=`${room.name} · ${floor.name}\n移开鼠标后自动熄灭并隐藏名称。`;$('floor-active-count').textContent=`已点亮 ${count} 个空间`;$('floor-room-note').textContent=`空间编号 ${room.id} · 色块依据原CAD房间分区，面积仅示意`;};
  floorViewer.onHoverEnd=()=>{$('floor-active-count').textContent='当前高亮 0 个空间';$('floor-room-title').textContent=selectedFloor==='all'?'全部楼层':`${selectedFloor}F · 空间预览`;$('floor-room-body').textContent='鼠标移入房间查看名称，移开后自动隐藏。';};
  function view(name,immediate=false){let v=views[name];if(name==='floorTop'){if(!floorViewer.group.visible)floorViewer.show(selectedFloor);if(floorViewer.mode==='all')v={eye:[69,175,-58],target:[69,0,-58.01]};}const isFloor=['floor','floorsAll','floorTop'].includes(name),inspection=name.startsWith('dorm')||isFloor,isFacade=['dorm','dormNorth','dormWest','dormEast'].includes(name),isolated=inspection;
-  sceneEffects.setView(name);
+  sceneEffects.setView(name);patrol.setView(name);
   controls.maxPolarAngle=inspection&&!isFloor?Math.PI/2:Math.PI*.491;
   if(!isFloor)floorViewer.hide();
   if(inspection&&!isFloor&&innerWidth/innerHeight<1){const target=new THREE.Vector3(...v.target),eye=new THREE.Vector3(...v.eye),factor=Math.max(1,(name==='dormEast'||name==='dormWest'?.8:1.5)/(innerWidth/innerHeight));v={eye:eye.sub(target).multiplyScalar(factor).add(target).toArray(),target:v.target};}
@@ -112,7 +114,7 @@ async function boot(){
  });
  renderer.domElement.addEventListener('pointerleave',()=>{if(floorViewer.group.visible)floorViewer.clear();});
  renderer.domElement.addEventListener('pointermove',e=>{if(floorViewer.group.visible){pointer.set(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2);ray.setFromCamera(pointer,camera);const hit=ray.intersectObjects(floorViewer.visiblePickables(),false)[0];floorViewer.hover(hit?.object);return;}if(!floorSelection.group.visible)return;pointer.set(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2);ray.setFromCamera(pointer,camera);const hit=ray.intersectObjects(floorSelection.group.children,false)[0];floorSelection.highlight(hit?.object.userData.floorNumber);renderer.domElement.style.cursor=hit?'pointer':'';});
- controls.addEventListener('start',()=>transition=null);
+ controls.addEventListener('start',()=>{transition=null;patrol.cancelFollow();});
  window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);labelRenderer.setSize(innerWidth,innerHeight);});
  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();$('render-status').textContent='WebGL 上下文丢失，请刷新页面';});
  const labelRay=new THREE.Ray();let lastLabelCheck=0;
@@ -128,7 +130,7 @@ async function boot(){
  }
  let previous=performance.now(),fpsStart=previous,frames=0,movingLast=false;
  function render(now){
-  requestAnimationFrame(render);const dt=Math.min((now-previous)/1000,.05);previous=now;
+  requestAnimationFrame(render);const dt=Math.max(0,Math.min((now-previous)/1000,.05));previous=now;
   if(transition){const t=Math.min(1,(now-transition.start)/1100),ease=t*t*(3-2*t);camera.position.lerpVectors(transition.from,transition.to,ease);controls.target.lerpVectors(transition.tf,transition.tt,ease);if(t===1)transition=null;}
   let moved=false;
   if($('walk').checked&&avatar.root){
@@ -137,12 +139,12 @@ async function boot(){
    if(delta.lengthSq()){delta.normalize().multiplyScalar(dt*(keys.has('shift')?4:1.6));const before=avatar.root.position.clone();moved=avatar.move(delta.x,delta.z);const actual=avatar.root.position.clone().sub(before);camera.position.add(actual);controls.target.add(actual);}
    if(moved!==movingLast){const name=moved?'Walk':'Idle';if(avatar.setAnimation(name))$('animation').value=name;movingLast=moved;}
   }
-  sceneEffects.update(now);avatar.update(dt);if(moved)renderer.shadowMap.needsUpdate=true;controls.update();updateLabelOcclusion(now);renderer.render(scene,camera);labelRenderer.render(scene,camera);frames++;
+  sceneEffects.update(now);patrol.update(dt);if(patrol.following&&patrol.group.visible){const pose=patrol.robot.position,angle=patrol.robot.rotation.y,eye=pose.clone().add(new THREE.Vector3(-Math.sin(angle)*11+Math.cos(angle)*5,8,-Math.cos(angle)*11-Math.sin(angle)*5));camera.position.lerp(eye,Math.min(1,dt*5));controls.target.lerp(pose.clone().add(new THREE.Vector3(0,1,0)),Math.min(1,dt*6));}avatar.update(dt);if(moved)renderer.shadowMap.needsUpdate=true;controls.update();updateLabelOcclusion(now);renderer.render(scene,camera);labelRenderer.render(scene,camera);frames++;
   if(now-fpsStart>1000){$('render-status').textContent=`场景就绪 · ${Math.round(frames*1000/(now-fpsStart))} FPS · 米制坐标`;frames=0;fpsStart=now;}
  }
  requestAnimationFrame(render);
  // Stable extension entry point for custom digital humans and future navigation.
- window.meili={site,scene,camera,renderer,controls,navigation:nav,avatar,loadAvatar:(url,options)=>avatar.load(url,options),stations:site.stations,view,showFloor,floorViewer,assistant,setAssistantProvider:fn=>assistant.setProvider(fn),focusAvatar,get viewName(){return viewName;}};
+ window.meili={patrol,site,scene,camera,renderer,controls,navigation:nav,avatar,loadAvatar:(url,options)=>avatar.load(url,options),stations:site.stations,view,showFloor,floorViewer,assistant,setAssistantProvider:fn=>assistant.setProvider(fn),focusAvatar,get viewName(){return viewName;}};
  window.meili.dashboard=setupDashboard({site,floors:floorData,assistant});
  $('render-status').textContent='场景就绪 · 11 栋建筑 · CAD 米制';
 }
