@@ -152,6 +152,8 @@ async function boot(){
  window.meili.dashboard=setupDashboard({site,floors:floorData,assistant});
  window.meili.propertySearch=setupPropertySearch();
  window.meili.operationsDemo=setupOperationsDemo({scene,site,view});
+ await Promise.all([...document.querySelectorAll('link[rel=stylesheet]')].filter(link=>!link.sheet).map(link=>new Promise((resolve,reject)=>{link.addEventListener('load',resolve,{once:true});link.addEventListener('error',()=>reject(new Error('界面样式加载失败')),{once:true});})));
+ document.body.classList.add('operations-ready');
  $('render-status').textContent='场景就绪 · 11 栋建筑 · CAD 米制';
 }
-boot().catch(e=>{$('render-status').textContent=`启动失败：${e.message}`;console.error(e);});
+boot().catch(e=>{const loading=document.getElementById('operations-loading');if(loading)loading.textContent='园区加载失败，请刷新重试';$('render-status').textContent=`启动失败：${e.message}`;console.error(e);});
