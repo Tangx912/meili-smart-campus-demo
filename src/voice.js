@@ -1,5 +1,5 @@
-export function setupVoice({onTranscript}){
- const $=id=>document.getElementById(id),button=$('voice-question'),status=$('voice-status'),read=$('voice-read'),Recognition=window.SpeechRecognition||window.webkitSpeechRecognition,synth=window.speechSynthesis;let recognition=null,listening=false;
+export function setupVoice({onTranscript,ids={}}){
+ const $=id=>document.getElementById(ids[id]||id),button=$('voice-question'),status=$('voice-status'),read=$('voice-read'),Recognition=window.SpeechRecognition||window.webkitSpeechRecognition,synth=window.speechSynthesis;let recognition=null,listening=false;
  function say(text){if(!synth){status.textContent='当前浏览器不支持语音播报。';return;}synth.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang='zh-CN';utterance.rate=.94;utterance.pitch=1.02;const voices=synth.getVoices().filter(v=>/^zh(-|_)/i.test(v.lang));const voice=voices.find(v=>/natural|neural|xiaoxiao|xiaoyi|enhanced|premium/i.test(v.name))||voices.find(v=>/zh-CN/i.test(v.lang))||voices[0];if(voice)utterance.voice=voice;utterance.onerror=e=>{if(!['interrupted','canceled'].includes(e.error))status.textContent='播报未能开始，可继续阅读文字回答。';};synth.speak(utterance);}
  function reset(){listening=false;button.classList.remove('listening');button.setAttribute('aria-pressed','false');button.setAttribute('aria-label','语音提问');button.title='语音提问';}
  function stop(){recognition?.abort();recognition=null;reset();synth?.cancel();}

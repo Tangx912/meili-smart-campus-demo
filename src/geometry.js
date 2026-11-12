@@ -3,12 +3,12 @@ import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 export const materials={
  ground:new THREE.MeshStandardMaterial({color:0x102b3d,roughness:1}),
  structure:new THREE.MeshStandardMaterial({color:0xcdd4cf,roughness:.9}),
- wall:new THREE.MeshStandardMaterial({color:0xe0edf3,roughness:.82}),trim:new THREE.MeshStandardMaterial({color:0x2b4351,roughness:.66}),
- glass:new THREE.MeshPhysicalMaterial({color:0x527e92,metalness:.08,roughness:.16,transmission:.16,thickness:.05,ior:1.45,transparent:true,opacity:.9,depthWrite:false}),orange:new THREE.MeshStandardMaterial({color:0xe85b22,roughness:.65}),
+ wall:new THREE.MeshStandardMaterial({color:0xe5e6e0,roughness:.72}),trim:new THREE.MeshStandardMaterial({color:0x3f4e55,roughness:.62}),
+ glass:new THREE.MeshPhysicalMaterial({color:0x647f8b,metalness:.12,roughness:.14,transmission:.14,thickness:.05,ior:1.45,transparent:true,opacity:.88,envMapIntensity:1.2,depthWrite:false}),orange:new THREE.MeshStandardMaterial({color:0xe85b22,roughness:.65}),
  solar:new THREE.MeshStandardMaterial({color:0x284a60,roughness:.3,metalness:.3}),
- roof:new THREE.MeshStandardMaterial({color:0xc6d9e3,roughness:.95}),road:new THREE.MeshStandardMaterial({color:0x344957,roughness:1}),
- paving:new THREE.MeshStandardMaterial({color:0x3f6779,roughness:1}),grass:new THREE.MeshStandardMaterial({color:0x2b727d,roughness:1}),
- leaf:new THREE.MeshStandardMaterial({color:0x438e98,roughness:1}),bark:new THREE.MeshStandardMaterial({color:0x807564,roughness:1}),
+ roof:new THREE.MeshStandardMaterial({color:0xb4bcb9,roughness:.84}),road:new THREE.MeshStandardMaterial({color:0x626b6b,roughness:1}),
+ paving:new THREE.MeshStandardMaterial({color:0xb0b6af,roughness:1}),grass:new THREE.MeshStandardMaterial({color:0x6c894d,roughness:1}),
+ leaf:new THREE.MeshStandardMaterial({color:0x4d7345,roughness:1}),bark:new THREE.MeshStandardMaterial({color:0x807564,roughness:1}),
  white:new THREE.MeshStandardMaterial({color:0xeee9d2}),yellow:new THREE.MeshStandardMaterial({color:0xd8bd69}),blue:new THREE.MeshStandardMaterial({color:0x2d777c})
 };
 export function builder(){

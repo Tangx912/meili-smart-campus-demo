@@ -22,7 +22,7 @@ export function buildSite(site,lines){
  for(let i=0;i<11;i++)treePoints.push([-55+i*5.9,-8-i*8]);
  for(let x=11;x<65;x+=10)treePoints.push([x,-102]);
  for(const[x,z]of treePoints){if(!inside(x,z,site.boundary)||site.buildings.some(b=>inside(x,z,b.footprint)))continue;
-  trees.box(x,1.55,z,.16,3.1,.16,'bark');const geo=new THREE.IcosahedronGeometry(1.8,1);geo.scale(1,1.3,1);geo.translate(x,4,z);trees.add(geo,'leaf');
+  trees.box(x,1.55,z,.16,3.1,.16,'bark');const geo=new THREE.IcosahedronGeometry(1.8,2);geo.scale(1,1.3,1);geo.translate(x,4,z);trees.add(geo,'leaf');
  }
  for(let z=-65;z<87;z+=23){g.box(37,3,z,.10,6,.10,'white');g.box(36.6,6,z,.9,.11,.45,'trim');}
  // Ground markings on the inter-building axes.

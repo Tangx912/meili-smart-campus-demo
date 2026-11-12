@@ -4,6 +4,7 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {buildBuildings} from './buildings.js';
 import {buildSite} from './site.js';
 import {createSceneEffects} from './scene-effects.js';
+import {applyDaylight} from './daylight.js';
 import {createPatrol} from './patrol.js';
 import {createFloorSelection} from './building11-selection.js';
 import {linework} from './geometry.js';
@@ -11,17 +12,20 @@ import {createNavigation} from './navigation.js';
 import {FloorViewer11} from './floors11.js';
 import {setupAssistant} from './assistant.js';
 import {setupDashboard} from './dashboard.js';
+import {setupOperationsDemo} from './operations-demo.js';
+import {setupPropertySearch} from './property-search.js';
 import {AvatarController} from './avatar.js';
 const $=id=>document.getElementById(id);
 async function boot(){
  const [site,lines,building11,floorData]=await Promise.all(['./data/site.json','./data/site-lines.json','./data/building11.json','./data/building11-floors.json'].map(async url=>{const r=await fetch(url);if(!r.ok)throw new Error(`资料加载失败: ${url}`);return r.json();}));
  site.buildings.find(b=>b.id===11).detail=building11;
  const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b2132);scene.fog=new THREE.Fog(0x0b2132,620,1150);
- const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.13;$('viewport').append(renderer.domElement);
+ const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;$('viewport').append(renderer.domElement);
+ applyDaylight(scene,renderer);
  const labelRenderer=new CSS2DRenderer();labelRenderer.setSize(innerWidth,innerHeight);Object.assign(labelRenderer.domElement.style,{position:'absolute',top:'0',pointerEvents:'none'});$('viewport').append(labelRenderer.domElement);
  const camera=new THREE.PerspectiveCamera(39,innerWidth/innerHeight,.15,1800);
  const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.07;controls.minDistance=2;controls.maxDistance=750;controls.maxPolarAngle=Math.PI*.491;controls.target.set(-10,0,0);
- scene.add(new THREE.HemisphereLight(0xd5efff,0x334a60,2.2));const sun=new THREE.DirectionalLight(0xe4f5ff,3);sun.position.set(-100,210,110);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-195,right:195,top:190,bottom:-190,near:1,far:500});sun.shadow.normalBias=.18;sun.shadow.bias=-.00025;scene.add(sun);scene.add(sun.target);
+ scene.add(new THREE.HemisphereLight(0xe9f1f8,0x67735a,1.25));const sun=new THREE.DirectionalLight(0xfff5e2,3.1);sun.position.set(-125,195,-110);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-195,right:195,top:190,bottom:-190,near:1,far:500});sun.shadow.normalBias=.18;sun.shadow.bias=-.00025;scene.add(sun);scene.add(sun.target);
  const buildings=buildBuildings(site),land=buildSite(site,lines);scene.add(buildings.group,buildings.labels,land.group);
  const sceneEffects=createSceneEffects(site);scene.add(sceneEffects.group);
  const patrol=createPatrol({onFocus:()=>view('patrol',true)});scene.add(patrol.group);
@@ -36,7 +40,7 @@ async function boot(){
  scene.add(markers);markers.visible=false;
  const cadLayer=new THREE.Group();cadLayer.add(linework(lines,0x216762,.18));cadLayer.add(linework(site.buildings.map(b=>({points:b.footprint,closed:true})),0xc95e2b,.19));cadLayer.add(linework([{points:site.boundary,closed:true}],0xc95e2b,.2));cadLayer.visible=false;scene.add(cadLayer);
  const stations=$('station');for(const p of site.stations)stations.add(new Option(p.name,p.id));
- const views={patrol:{eye:[-38,155,147],target:[17,0,48]},overview:{eye:[-330,303,368],target:[-12,0,0]},entrance:{eye:[-126,9,8],target:[-40,10,-4]},street:{eye:[1.65,2.4,91],target:[1.65,5.5,30]},dorm:{eye:[36.813,13.95,22.2886],target:[36.813,13.95,-87.7114]},dormNorth:{eye:[36.813,13.95,-197.7114],target:[36.813,13.95,-87.7114]},dormWest:{eye:[-43.187,13.95,-87.7114],target:[36.813,13.95,-87.7114]},dormEast:{eye:[116.813,13.95,-87.7114],target:[36.813,13.95,-87.7114]},dormSelect:{eye:[-28,44,-22],target:[36.813,12,-87.7114]},dormRoof:{eye:[-4,63,-47],target:[34,21,-87]},floor:{eye:[36.8,64,-40],target:[36.8,0,-87]},floorsAll:{eye:[69,156,25],target:[69,0,-58]},floorTop:{eye:[36.8,83,-87],target:[36.8,0,-87.01]},plan:{eye:[-15,600,.1],target:[-15,0,0]}};
+ const views={patrol:{eye:[-38,155,147],target:[17,0,48]},overview:{eye:[-218,199,243],target:[-12,0,0]},entrance:{eye:[-126,9,8],target:[-40,10,-4]},street:{eye:[1.65,2.4,91],target:[1.65,5.5,30]},dorm:{eye:[36.813,13.95,22.2886],target:[36.813,13.95,-87.7114]},dormNorth:{eye:[36.813,13.95,-197.7114],target:[36.813,13.95,-87.7114]},dormWest:{eye:[-43.187,13.95,-87.7114],target:[36.813,13.95,-87.7114]},dormEast:{eye:[116.813,13.95,-87.7114],target:[36.813,13.95,-87.7114]},dormSelect:{eye:[-28,44,-22],target:[36.813,12,-87.7114]},dormRoof:{eye:[-4,63,-47],target:[34,21,-87]},floor:{eye:[36.8,64,-40],target:[36.8,0,-87]},floorsAll:{eye:[69,156,25],target:[69,0,-58]},floorTop:{eye:[36.8,83,-87],target:[36.8,0,-87.01]},plan:{eye:[-15,600,.1],target:[-15,0,0]}};
  let transition=null,viewName='overview',selectedFloor=1;
  function showFloor(number){selectedFloor=number;floorViewer.show(number);view(number==='all'?'floorsAll':'floor');$('floor-room-info').hidden=number==='all';$('floor-room-title').textContent=number==='all'?'全部楼层展开':`${number}F · ${number===1?'食堂 / 大堂':number===2?'物业办公 / 活动室':'宿舍层'}`;$('floor-room-body').textContent='鼠标移入房间可点亮并查看名称，移开后自动隐藏。手机可轻点查看。';document.querySelectorAll('[data-floor]').forEach(b=>b.classList.toggle('active',b.dataset.floor===String(number)));}
  floorViewer.onSelect=(room,floor,active,count)=>{$('floor-room-info').hidden=false;$('floor-room-title').textContent=`${floor.name} · ${room.name}`;$('floor-room-body').textContent=`${room.name} · ${floor.name}\n移开鼠标后自动熄灭并隐藏名称。`;$('floor-active-count').textContent=`已点亮 ${count} 个空间`;$('floor-room-note').textContent=`空间编号 ${room.id} · 色块依据原CAD房间分区，面积仅示意`;};
@@ -139,13 +143,15 @@ async function boot(){
    if(delta.lengthSq()){delta.normalize().multiplyScalar(dt*(keys.has('shift')?4:1.6));const before=avatar.root.position.clone();moved=avatar.move(delta.x,delta.z);const actual=avatar.root.position.clone().sub(before);camera.position.add(actual);controls.target.add(actual);}
    if(moved!==movingLast){const name=moved?'Walk':'Idle';if(avatar.setAnimation(name))$('animation').value=name;movingLast=moved;}
   }
-  sceneEffects.update(now);patrol.update(dt);if(patrol.following&&patrol.group.visible){const pose=patrol.robot.position,angle=patrol.robot.rotation.y,eye=pose.clone().add(new THREE.Vector3(-Math.sin(angle)*11+Math.cos(angle)*5,8,-Math.cos(angle)*11-Math.sin(angle)*5));camera.position.lerp(eye,Math.min(1,dt*5));controls.target.lerp(pose.clone().add(new THREE.Vector3(0,1,0)),Math.min(1,dt*6));}avatar.update(dt);if(moved)renderer.shadowMap.needsUpdate=true;controls.update();updateLabelOcclusion(now);renderer.render(scene,camera);labelRenderer.render(scene,camera);frames++;
+  window.meili?.operationsDemo?.update(now);sceneEffects.update(now);patrol.update(dt);if(patrol.following&&patrol.group.visible){const pose=patrol.robot.position,angle=patrol.robot.rotation.y,eye=pose.clone().add(new THREE.Vector3(-Math.sin(angle)*11+Math.cos(angle)*5,8,-Math.cos(angle)*11-Math.sin(angle)*5));camera.position.lerp(eye,Math.min(1,dt*5));controls.target.lerp(pose.clone().add(new THREE.Vector3(0,1,0)),Math.min(1,dt*6));}avatar.update(dt);if(moved)renderer.shadowMap.needsUpdate=true;controls.update();updateLabelOcclusion(now);renderer.render(scene,camera);labelRenderer.render(scene,camera);frames++;
   if(now-fpsStart>1000){$('render-status').textContent=`场景就绪 · ${Math.round(frames*1000/(now-fpsStart))} FPS · 米制坐标`;frames=0;fpsStart=now;}
  }
  requestAnimationFrame(render);
  // Stable extension entry point for custom digital humans and future navigation.
  window.meili={patrol,site,scene,camera,renderer,controls,navigation:nav,avatar,loadAvatar:(url,options)=>avatar.load(url,options),stations:site.stations,view,showFloor,floorViewer,assistant,setAssistantProvider:fn=>assistant.setProvider(fn),focusAvatar,get viewName(){return viewName;}};
  window.meili.dashboard=setupDashboard({site,floors:floorData,assistant});
+ window.meili.propertySearch=setupPropertySearch();
+ window.meili.operationsDemo=setupOperationsDemo({scene,site,view});
  $('render-status').textContent='场景就绪 · 11 栋建筑 · CAD 米制';
 }
 boot().catch(e=>{$('render-status').textContent=`启动失败：${e.message}`;console.error(e);});

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {CSS2DObject} from 'three/addons/renderers/CSS2DRenderer.js';
-export const patrolWaypoints=[[1.65,92],[1.65,10],[37.7,10],[37.7,92]];
+export const patrolWaypoints=[[-135,95],[95,94],[109,25],[111,-100],[6,-102],[2,-95],[2,-88],[2,-75],[-14,-58],[-36,-32],[-65,10],[-69,22],[-138,22]];
 export function createPatrolCurve(){
  const curve=new THREE.CurvePath(),points=patrolWaypoints.map(([x,z])=>new THREE.Vector3(x,.16,z)),radius=3.5;
  const corners=points.map((p,i)=>{const previous=points[(i+points.length-1)%points.length],next=points[(i+1)%points.length];return {p,start:p.clone().addScaledVector(previous.clone().sub(p).normalize(),radius),end:p.clone().addScaledVector(next.clone().sub(p).normalize(),radius)};});
@@ -24,7 +24,7 @@ export function createPatrol({onFocus}){
  const label=document.createElement('div');label.className='patrol-label';label.textContent='R-01 · 虚拟巡检';const tag=new CSS2DObject(label);tag.position.y=4;robot.add(tag);
  const panel=document.getElementById('patrol-controls'),toggle=document.getElementById('patrol-toggle'),status=document.getElementById('patrol-status'),progress=document.getElementById('patrol-progress');
  toggle.onclick=()=>{running=!running;toggle.textContent=running?'暂停巡检':'继续巡检';};document.getElementById('patrol-reset').onclick=()=>{distance=0;time=0;update(0);};document.getElementById('patrol-focus').onclick=()=>onFocus();const followButton=document.getElementById('patrol-follow');function cancelFollow(){following=false;followButton.textContent='跟随机器人';}followButton.onclick=()=>{following=!following;followButton.textContent=following?'退出跟随':'跟随机器人';if(following)onFocus();};
- function update(dt){if(!allowed)return;if(running){distance=(distance+dt*10)%length;time+=dt;}const t=distance/length,p=curve.getPointAt(t),direction=patrolDirection(curve,t);robot.position.copy(p);robot.rotation.y=Math.atan2(direction.x,direction.z);lidar.rotation.y=time*2.5;scan.rotation.z=-time*.8;radar.scale.setScalar(.7+(time*.4%1)*.6);radar.material.opacity=.5*(1-time*.4%1);flow.uniforms.time.value=time;for(const wheel of wheels)wheel.rotation.x=-distance/.33;const names=['西侧通道','入口联络道','东侧通道','南侧环道'];status.textContent=`${names[Math.min(3,Math.floor(t*4))]} · ${Math.round(t*100)}% · ${running?'巡检演示中':'已暂停'}`;progress.style.width=`${t*100}%`;}
+ function update(dt){if(!allowed)return;if(running){distance=(distance+dt*10)%length;time+=dt;}const t=distance/length,p=curve.getPointAt(t),direction=patrolDirection(curve,t);robot.position.copy(p);robot.rotation.y=Math.atan2(direction.x,direction.z);lidar.rotation.y=time*2.5;scan.rotation.z=-time*.8;radar.scale.setScalar(.7+(time*.4%1)*.6);radar.material.opacity=.5*(1-time*.4%1);flow.uniforms.time.value=time;for(const wheel of wheels)wheel.rotation.x=-distance/.33;const names=['南侧外围环道','东侧外围环道','北侧外围环道','西侧外围环道'];status.textContent=`${names[Math.min(3,Math.floor(t*4))]} · ${Math.round(t*100)}% · ${running?'巡检演示中':'已暂停'}`;progress.style.width=`${t*100}%`;}
  update(0);
  return {group,robot,curve,update,cancelFollow,get following(){return following;},setView(name){if(name!=='patrol')cancelFollow();allowed=!name.startsWith('dorm')&&!['floor','floorsAll','floorTop'].includes(name);group.visible=allowed;panel.hidden=!allowed;},get running(){return running;},get distance(){return distance;}};
 }
