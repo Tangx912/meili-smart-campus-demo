@@ -148,7 +148,7 @@ async function boot(){
  }
  requestAnimationFrame(render);
  // Stable extension entry point for custom digital humans and future navigation.
- window.meili={patrol,site,scene,camera,renderer,controls,navigation:nav,avatar,loadAvatar:(url,options)=>avatar.load(url,options),stations:site.stations,view,showFloor,floorViewer,assistant,setAssistantProvider:fn=>assistant.setProvider(fn),focusAvatar,get viewName(){return viewName;}};
+ window.meili={patrol,site,scene,camera,renderer,controls,resizeStage:(width,height)=>{renderer.setSize(width,height);labelRenderer.setSize(width,height);camera.aspect=width/height;camera.updateProjectionMatrix();},navigation:nav,avatar,loadAvatar:(url,options)=>avatar.load(url,options),stations:site.stations,view,showFloor,floorViewer,assistant,setAssistantProvider:fn=>assistant.setProvider(fn),focusAvatar,get viewName(){return viewName;}};
  window.meili.dashboard=setupDashboard({site,floors:floorData,assistant});
  window.meili.propertySearch=setupPropertySearch();
  window.meili.operationsDemo=setupOperationsDemo({scene,site,view});
